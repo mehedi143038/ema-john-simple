@@ -1,26 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import './Shop.css';
-import fakeData from '../../fakeData';
 import Product from '../Product/Product';
 import Cart from '../Cart/Cart';
 import { addToDatabaseCart, getDatabaseCart } from '../../utilities/databaseManager';
 import { Link } from 'react-router-dom';
 
 const Shop = () => {
-    const first10=fakeData.slice(0,10);
-    const [product,setProduct] = useState(first10);
+    //const first10=fakeData.slice(0,10);
+    const [products,setProducts] = useState([]);
     const [cart, setCart] = useState([]);
+
+    useEffect(()=>{
+        fetch('http://localhost:3000/products')
+        .then(res => res.json())
+        .then(data => {
+            setProducts(data);
+            console.log(products);
+        })
+    },[])
 
     useEffect(()=>{
         const savedCart = getDatabaseCart();
         const productKeys = Object.keys(savedCart);
-        const previousCart = productKeys.map(existingKey =>{
-            const product =fakeData.find(pd => pd.key ===existingKey);
-            product.quantity = savedCart[existingKey];
-            return product;
-        })
-        setCart(previousCart);
-    },[])
+        console.log(products);
+        if(products.length){
+            const previousCart = productKeys.map(existingKey =>{
+                const product =products.find(pd => pd.key ===existingKey);
+                product.quantity = savedCart[existingKey];
+                return product;
+            })
+            setCart(previousCart);
+        }
+    },[products])
 
     const handleAddProduct = (product)=>{
         const toBeAddedKey =product.key;
@@ -47,7 +58,7 @@ const Shop = () => {
         <div className="twin-container">
             <div className="product-container">
                 {
-                    product.map(item=> <Product 
+                    products.map(item=> <Product 
                         key = {item.key}
                         showAddToCart = {true}
                         handleAddProduct = {handleAddProduct}
